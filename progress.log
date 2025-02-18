@@ -1,1 +1,2 @@
 2025-02-07: Added rate limiter logic and usage logging.
+2025-02-18: Implemented basic error handling and improved response messages.
