@@ -4,3 +4,4 @@
 2025-02-12: Added basic usage logging and stats collector.
 2025-02-18: Implemented basic error handling and improved response messages.
 2025-02-18: Refactored middleware and improved request context handling.
+2025-02-25: Added per-client configurable rate limit settings.

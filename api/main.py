@@ -8,16 +8,38 @@ app = FastAPI(
     version="0.1.0"
 )
 
-rate_limiter = FixedWindowRateLimiter(limit=100, window_seconds=60)
 usage_logger = UsageLogger()
+
+# Per-client rate limit configuration
+CLIENT_RATE_LIMITS = {
+    "anonymous": {"limit": 100, "window_seconds": 60},
+    "client_basic": {"limit": 50, "window_seconds": 60},
+    "client_premium": {"limit": 200, "window_seconds": 60},
+}
+
+# Store a separate rate limiter for each client
+rate_limiters = {}
 
 def get_client_id(request: Request) -> str:
     return request.headers.get("x-client-id", "anonymous")
 
+def get_or_create_rate_limiter(client_id: str) -> FixedWindowRateLimiter:
+    config = CLIENT_RATE_LIMITS.get(client_id, CLIENT_RATE_LIMITS["anonymous"])
+
+    if client_id not in rate_limiters:
+        rate_limiters[client_id] = FixedWindowRateLimiter(
+            limit=config["limit"],
+            window_seconds=config["window_seconds"]
+        )
+
+    return rate_limiters[client_id]
+
 @app.middleware("http")
 async def rate_limit_middleware(request: Request, call_next):
     client_id = get_client_id(request)
-    allowed = rate_limiter.allow_request(client_id)
+
+    limiter = get_or_create_rate_limiter(client_id)
+    allowed = limiter.allow_request(client_id)
 
     usage_logger.log_request(client_id)
 
@@ -25,7 +47,8 @@ async def rate_limit_middleware(request: Request, call_next):
         usage_logger.log_violation(client_id)
         raise HTTPException(status_code=429, detail="Too Many Requests")
 
-    return await call_next(request)
+    response = await call_next(request)
+    return response
 
 @app.get("/health")
 async def health():
