@@ -6,14 +6,14 @@ class SlidingWindowRateLimiter(RateLimiter):
     """
     Sliding window rate limiter.
 
-    Allows up to `limit` requests within the last `window_seconds`
-    for each key. Uses a deque of timestamps per key.
+    For each key, keeps timestamps of recent requests and enforces
+    a maximum of `limit` requests within the last `window_seconds`.
     """
 
     def __init__(self, limit: int, window_seconds: int):
-        self.limit = limit
-        self.window = window_seconds
-        self.store = defaultdict(deque)  # key -> deque[timestamps]
+        self.limit: int = limit
+        self.window: int = window_seconds
+        self.store: dict[str, deque[float]] = defaultdict(deque)
 
     def allow_request(self, key: str) -> bool:
         now = time.time()

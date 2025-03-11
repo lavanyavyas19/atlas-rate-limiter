@@ -7,3 +7,4 @@
 2025-02-25: Added per-client configurable rate limit settings.
 2025-03-03: Polished README status section and clarified test coverage and project timeline.
 2025-03-07: Implemented initial sliding window rate limiter for smoother throttling.
+2025-03-11: Cleaned up sliding window implementation with type hints and clearer documentation.
