@@ -1,3 +1,6 @@
+from rate_limiter.fixed_window import FixedWindowRateLimiter
+from rate_limiter.sliding_window import SlidingWindowRateLimiter
+from monitoring.usage_log import UsageLogger
 from fastapi import FastAPI, Request, HTTPException
 from rate_limiter.fixed_window import FixedWindowRateLimiter
 from monitoring.usage_log import UsageLogger
@@ -12,10 +15,11 @@ usage_logger = UsageLogger()
 
 # Per-client rate limit configuration
 CLIENT_RATE_LIMITS = {
-    "anonymous": {"limit": 100, "window_seconds": 60},
-    "client_basic": {"limit": 50, "window_seconds": 60},
-    "client_premium": {"limit": 200, "window_seconds": 60},
+    "anonymous": {"algo": "fixed", "limit": 100, "window_seconds": 60},
+    "client_basic": {"algo": "fixed", "limit": 50, "window_seconds": 60},
+    "client_premium": {"algo": "sliding", "limit": 200, "window_seconds": 60},
 }
+
 
 # Store a separate rate limiter for each client
 rate_limiters = {}
@@ -25,12 +29,19 @@ def get_client_id(request: Request) -> str:
 
 def get_or_create_rate_limiter(client_id: str) -> FixedWindowRateLimiter:
     config = CLIENT_RATE_LIMITS.get(client_id, CLIENT_RATE_LIMITS["anonymous"])
+    algo = config.get("algo", "fixed")
 
     if client_id not in rate_limiters:
-        rate_limiters[client_id] = FixedWindowRateLimiter(
-            limit=config["limit"],
-            window_seconds=config["window_seconds"]
-        )
+        if algo == "sliding":
+            rate_limiters[client_id] = SlidingWindowRateLimiter(
+                limit=config["limit"],
+                window_seconds=config["window_seconds"]
+            )
+        else:
+            rate_limiters[client_id] = FixedWindowRateLimiter(
+                limit=config["limit"],
+                window_seconds=config["window_seconds"]
+            )
 
     return rate_limiters[client_id]
 
