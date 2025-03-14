@@ -9,3 +9,4 @@
 2025-03-07: Implemented initial sliding window rate limiter for smoother throttling.
 2025-03-11: Cleaned up sliding window implementation with type hints and clearer documentation.
 2025-03-11: Wired sliding window limiter into FastAPI pipeline for premium clients via config.
+2025-03-14: Added unit tests covering fixed window limiter limits and window reset behaviour.
