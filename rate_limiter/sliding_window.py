@@ -1,32 +1,30 @@
 import time
-from collections import defaultdict, deque
-from .base import RateLimiter
+from rate_limiter.sliding_window import SlidingWindowRateLimiter
 
 
-class SlidingWindowRateLimiter(RateLimiter):
-    """
-    Sliding window rate limiter.
+def _make_limiter(limit: int, window_seconds: int) -> SlidingWindowRateLimiter:
+    """Factory helper used across sliding window tests."""
+    return SlidingWindowRateLimiter(limit=limit, window_seconds=window_seconds)
 
-    For each key, keeps timestamps of recent requests and enforces
-    a maximum of `limit` requests within the last `window_seconds`.
-    """
 
-    def __init__(self, limit: int, window_seconds: int):
-        self.limit: int = limit
-        self.window: int = window_seconds
-        self.store: dict[str, deque[float]] = defaultdict(deque)
+def test_sliding_window_allows_within_limit():
+    limiter = _make_limiter(limit=3, window_seconds=2)
+    key = "client1"
 
-    def allow_request(self, key: str) -> bool:
-        now = time.time()
-        window_start = now - self.window
-        timestamps = self.store[key]
+    assert limiter.allow_request(key)
+    assert limiter.allow_request(key)
+    assert limiter.allow_request(key)
+    assert not limiter.allow_request(key)  # 4th call should be blocked
 
-        # Drop timestamps that are outside the current window
-        while timestamps and timestamps[0] < window_start:
-            timestamps.popleft()
 
-        if len(timestamps) >= self.limit:
-            return False
+def test_sliding_window_recovers_after_window():
+    limiter = _make_limiter(limit=2, window_seconds=1)
+    key = "client2"
 
-        timestamps.append(now)
-        return True
+    assert limiter.allow_request(key)
+    assert limiter.allow_request(key)
+    assert not limiter.allow_request(key)
+
+    time.sleep(1.1)
+
+    assert limiter.allow_request(key)

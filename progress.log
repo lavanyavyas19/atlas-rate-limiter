@@ -12,3 +12,4 @@
 2025-03-14: Added unit tests covering fixed window limiter limits and window reset behaviour.
 2025-03-19: Added unit tests for sliding window limiter covering basic and reset behaviour.
 2025-03-19: Tightened sliding window logic and documented behaviour for edge timing cases.
+2025-03-19: Refactored sliding window tests to add shared factory helper and improve readability.
