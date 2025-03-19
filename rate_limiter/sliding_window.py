@@ -2,6 +2,7 @@ import time
 from collections import defaultdict, deque
 from .base import RateLimiter
 
+
 class SlidingWindowRateLimiter(RateLimiter):
     """
     Sliding window rate limiter.
@@ -20,7 +21,7 @@ class SlidingWindowRateLimiter(RateLimiter):
         window_start = now - self.window
         timestamps = self.store[key]
 
-        # Remove timestamps outside the window
+        # Drop timestamps that are outside the current window
         while timestamps and timestamps[0] < window_start:
             timestamps.popleft()
 
