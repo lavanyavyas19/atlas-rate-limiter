@@ -13,4 +13,4 @@
 2025-03-19: Refactored sliding window tests to add shared factory helper and improve readability.
 2025-03-19: Added sliding window test to ensure limits are isolated per client key.
 2025-03-23: Implemented token bucket limiter to support burst-friendly throttling.
-2025-03-23: Wired token bucket limiter for internal_service client based on config.
+2025-03-23: Integrated token bucket limiter for internal_service via config-driven selection.
