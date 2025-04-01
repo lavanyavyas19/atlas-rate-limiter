@@ -1,20 +1,46 @@
 import time
 from collections import defaultdict
+from typing import Dict
+
 
 class UsageLogger:
-    def __init__(self):
-        self.requests = defaultdict(list)
-        self.violations = defaultdict(list)
+    """
+    Tracks overall and per-client usage statistics:
+    - total requests
+    - total violations
+    - per-client request and violation counts
+    """
 
-    def log_request(self, key: str):
-        self.requests[key].append(time.time())
+    def __init__(self) -> None:
+        self.total_requests: int = 0
+        self.total_violations: int = 0
+        self.requests_per_client: Dict[str, int] = defaultdict(int)
+        self.violations_per_client: Dict[str, int] = defaultdict(int)
 
-    def log_violation(self, key: str):
-        self.violations[key].append(time.time())
+    def log_request(self, client_id: str) -> None:
+        self.total_requests += 1
+        self.requests_per_client[client_id] += 1
 
-    def get_stats(self):
+    def log_violation(self, client_id: str) -> None:
+        self.total_violations += 1
+        self.violations_per_client[client_id] += 1
+
+    def get_stats(self) -> dict:
+        """
+        Global statistics across all clients.
+        """
         return {
-            "total_clients": len(self.requests),
-            "total_requests": sum(len(v) for v in self.requests.values()),
-            "total_violations": sum(len(v) for v in self.violations.values()),
+            "total_requests": self.total_requests,
+            "total_violations": self.total_violations,
+            "clients_tracked": len(self.requests_per_client),
+        }
+
+    def get_client_stats(self, client_id: str) -> dict:
+        """
+        Statistics for a specific client.
+        """
+        return {
+            "client_id": client_id,
+            "requests": self.requests_per_client.get(client_id, 0),
+            "violations": self.violations_per_client.get(client_id, 0),
         }
