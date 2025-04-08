@@ -16,3 +16,5 @@
 2025-03-23: Integrated token bucket limiter for internal_service via config-driven selection.
 2025-04-01: Extended UsageLogger to maintain per-client request and violation statistics.
 2025-04-01: Added /stats/{client_id} endpoint to expose per-client analytics.
+2025-04-06: Added unit tests for token bucket limiter capacity and refill behaviour.
+2025-04-08: Fixed package structure and ensured all rate limiter tests pass successfully.
