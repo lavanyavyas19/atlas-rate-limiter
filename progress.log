@@ -18,3 +18,4 @@
 2025-04-01: Added /stats/{client_id} endpoint to expose per-client analytics.
 2025-04-06: Added unit tests for token bucket limiter capacity and refill behaviour.
 2025-04-08: Fixed package structure and ensured all rate limiter tests pass successfully.
+2025-04-19: Updated rate limiting middleware to return 429 responses directly instead of raising exceptions for cleaner API behaviour.

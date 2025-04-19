@@ -1,4 +1,5 @@
 from fastapi import FastAPI, Request, HTTPException
+from fastapi.responses import JSONResponse
 from typing import Dict
 
 from rate_limiter.fixed_window import FixedWindowRateLimiter
@@ -37,6 +38,11 @@ CLIENT_RATE_LIMITS = {
         "algo": "token",
         "capacity": 500,
         "refill_rate_per_second": 5.0,
+    },
+    "test_client": {
+        "algo": "fixed",
+        "limit": 3,
+        "window_seconds": 60,
     },
 }
 
@@ -89,11 +95,14 @@ async def rate_limit_middleware(request: Request, call_next):
 
     if not allowed:
         usage_logger.log_violation(client_id)
-        raise HTTPException(status_code=429, detail="Too Many Requests")
+        # Return a normal 429 response instead of raising an exception
+        return JSONResponse(
+            status_code=429,
+            content={"detail": "Too Many Requests"},
+        )
 
     response = await call_next(request)
     return response
-
 
 @app.get("/health")
 async def health():
@@ -107,6 +116,13 @@ async def stats():
     """
     return usage_logger.get_stats()
 
+@app.get("/metrics")
+async def metrics():
+    """
+    Lightweight metrics endpoint. In a real setup, this could be
+    adapted to Prometheus text format, but JSON is enough here.
+    """
+    return usage_logger.get_metrics()
 
 @app.get("/stats/{client_id}")
 async def stats_for_client(client_id: str):
@@ -119,3 +135,5 @@ async def stats_for_client(client_id: str):
 @app.get("/demo")
 async def demo():
     return {"message": "You're inside a rate-limited endpoint!"}
+
+
